@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jumper ($JUMP) ICO Calculator & Valuation Modeler</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+            },
+            cyanGlow: '#06b6d4',
+            darkBg: '#090d16',
+            cardBg: 'rgba(15, 23, 42, 0.75)',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #080b11;
+      color: #f1f5f9;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(124, 58, 237, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 45%);
+      min-height: 100vh;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+    .glow-purple {
+      box-shadow: 0 0 25px -5px rgba(124, 58, 237, 0.35);
+    }
+    input[type=range] {
+      accent-color: #8b5cf6;
+    }
+    /* Hide spin buttons */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="selection:bg-purple-600 selection:text-white pb-16">
+
+  <header class="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-500 p-0.5 flex items-center justify-center shadow-lg shadow-purple-500/20">
+          <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
+            ⚡
+          </div>
+        </div>
+        <div>
+          <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+            Jumper Legion Presale
+          </span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800/60 ml-2 font-mono">
+            $JUMP
+          </span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+        <div class="hidden sm:flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-lg px-3 py-1.5 font-mono text-slate-300">
+          <span class="text-slate-500">Presale:</span>
+          <span class="text-purple-400 font-semibold">$0.075</span>
+          <span class="text-slate-600">|</span>
+          <span class="text-slate-500">FDV:</span>
+          <span class="text-cyan-400 font-semibold">$75M</span>
+        </div>
+        <button id="copySummaryBtn" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+          <i data-lucide="share-2" class="w-4 h-4 text-purple-400"></i>
+          <span>Share Summary</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-purple-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="p-1 rounded-full bg-purple-500/20 text-purple-400">
+      <i data-lucide="check" class="w-4 h-4"></i>
+    </div>
+    <span id="toastMessage" class="text-sm font-medium">Copied summary to clipboard!</span>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+    <div class="text-center max-w-3xl mx-auto space-y-2">
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+        Presale Allocation & <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">FDV Scenario Modeler</span>
+      </h1>
+      <p class="text-slate-400 text-sm sm:text-base">
+        Input your Legion ICO commitment amount, project your vesting schedule, and simulate potential returns across various target valuations.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- LEFT COLUMN: Inputs & Presale Breakdown (5 Cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Investment Input Card -->
+        <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="flex items-center justify-between mb-4">
+            <label for="investInput" class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <i data-lucide="wallet" class="w-4 h-4 text-purple-400"></i>
+              Your Investment Amount
+            </label>
+            <span class="text-xs text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded font-mono">USDC / USD</span>
+          </div>
+
+          <div class="relative mb-4">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 font-bold text-xl">
+              $
+            </div>
+            <input 
+              type="number" 
+              id="investInput" 
+              value="1000" 
+              min="1" 
+              step="any"
+              class="w-full bg-slate-900/90 border border-slate-700/80 focus:border-purple-500 rounded-xl py-3.5 pl-9 pr-4 text-2xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition"
+              placeholder="1,000"
+            />
+          </div>
+
+          <!-- Quick Preset Buttons -->
+          <div class="grid grid-cols-5 gap-1.5 mb-6">
+            <button class="preset-btn py-1.5 px-2 bg-slate-800/70 hover:bg-purple-900/40 border border-slate-700/60 rounded-lg text-xs font-mono text-slate-300 hover:text-white transition" data-amount="100">$100</button>
+            <button class="preset-btn py-1.5 px-2 bg-slate-800/70 hover:bg-purple-900/40 border border-slate-700/60 rounded-lg text-xs font-mono text-slate-300 hover:text-white transition" data-amount="500">$500</button>
+            <button class="preset-btn py-1.5 px-2 bg-purple-950/80 border border-purple-500/60 rounded-lg text-xs font-mono text-purple-200 transition font-bold" data-amount="1000">$1,000</button>
+            <button class="preset-btn py-1.5 px-2 bg-slate-800/70 hover:bg-purple-900/40 border border-slate-700/60 rounded-lg text-xs font-mono text-slate-300 hover:text-white transition" data-amount="2500">$2,500</button>
+            <button class="preset-btn py-1.5 px-2 bg-slate-800/70 hover:bg-purple-900/40 border border-slate-700/60 rounded-lg text-xs font-mono text-slate-300 hover:text-white transition" data-amount="5000">$5,000</button>
+          </div>
+
+          <!-- Token Allocation Breakdown Summary -->
+          <div class="border-t border-slate-800 pt-5 space-y-3.5">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-400">Total $JUMP Allocated:</span>
+              <span id="totalTokensDisplay" class="font-mono font-bold text-lg text-white">13,333.33 JUMP</span>
+            </div>
+            
+            <div class="flex items-center justify-between text-xs sm:text-sm">
+              <span class="text-slate-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 inline-block"></span>
+                TGE Unlock (50%):
+              </span>
+              <span id="tgeTokensDisplay" class="font-mono font-semibold text-cyan-300">6,666.67 JUMP</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs sm:text-sm">
+              <span class="text-slate-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-purple-400 inline-block"></span>
+                Vesting Balance (50%):
+              </span>
+              <span id="vestedTokensDisplay" class="font-mono font-semibold text-purple-300">6,666.67 JUMP</span>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs text-slate-400">
+              <span>Monthly unlock rate:</span>
+              <span id="monthlyTokensDisplay" class="font-mono text-slate-200 font-semibold">1,666.67 JUMP / mo (12.5%)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Presale Metrics Reference Card -->
+        <div class="glass-card rounded-2xl p-5 text-xs space-y-3">
+          <div class="flex items-center justify-between font-semibold text-slate-300 border-b border-slate-800 pb-2">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="info" class="w-4 h-4 text-cyan-400"></i>
+              Official Presale Specs
+            </span>
+            <span class="text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60 font-mono">Legion ICO</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-1 text-slate-400">
+            <div>
+              <p class="text-slate-500">Presale FDV</p>
+              <p class="font-mono font-medium text-slate-200 mt-0.5">$75,000,000</p>
+            </div>
+            <div>
+              <p class="text-slate-500">Token Price</p>
+              <p class="font-mono font-medium text-slate-200 mt-0.5">$0.075 USDC</p>
+            </div>
+            <div>
+              <p class="text-slate-500">Total Token Supply</p>
+              <p class="font-mono font-medium text-slate-200 mt-0.5">1,000,000,000 JUMP</p>
+            </div>
+            <div>
+              <p class="text-slate-500">Raise Target Cap</p>
+              <p class="font-mono font-medium text-slate-200 mt-0.5">$2M Soft / $3M Hard</p>
+            </div>
+          </div>
+          <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/80 text-slate-400 text-[11px] leading-relaxed">
+            <strong class="text-purple-300">Vesting:</strong> 50% distributed at Token Generation Event (TGE), remaining 50% vests linearly over 4 consecutive months.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Valuation & Return Modeler (7 Cols) -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Target Valuation Controls -->
+        <div class="glass-card rounded-2xl p-6 relative">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i data-lucide="trending-up" class="w-5 h-5 text-emerald-400"></i>
+                Valuation Scenario Explorer
+              </h2>
+              <p class="text-xs text-slate-400">Adjust the target FDV or target token price</p>
+            </div>
+            <div id="multiplierBadge" class="inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-400 font-mono text-sm font-bold">
+              1.0x (0% ROI)
+            </div>
+          </div>
+
+          <!-- Dual Sync Inputs: FDV and Token Price -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 focus-within:border-purple-500 transition">
+              <label for="fdvInput" class="text-xs font-semibold text-slate-400 block mb-1">Target FDV (USD)</label>
+              <div class="flex items-center">
+                <span class="text-slate-500 font-mono text-lg font-bold mr-1.5">$</span>
+                <input 
+                  type="number" 
+                  id="fdvInput" 
+                  value="75000000" 
+                  min="1000000" 
+                  step="5000000"
+                  class="bg-transparent w-full text-xl font-bold font-mono text-white focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 focus-within:border-cyan-500 transition">
+              <label for="tokenPriceInput" class="text-xs font-semibold text-slate-400 block mb-1">Projected $JUMP Price</label>
+              <div class="flex items-center">
+                <span class="text-slate-500 font-mono text-lg font-bold mr-1.5">$</span>
+                <input 
+                  type="number" 
+                  id="tokenPriceInput" 
+                  value="0.0750" 
+                  min="0.001" 
+                  step="0.01"
+                  class="bg-transparent w-full text-xl font-bold font-mono text-cyan-300 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Slider -->
+          <div class="mb-4">
+            <input 
+              type="range" 
+              id="fdvSlider" 
+              min="25000000" 
+              max="1500000000" 
+              step="5000000" 
+              value="75000000"
+              class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer"
+            />
+            <div class="flex justify-between text-[11px] font-mono text-slate-500 mt-1">
+              <span>$25M</span>
+              <span>$75M (Presale)</span>
+              <span>$500M</span>
+              <span>$1.0B</span>
+              <span>$1.5B</span>
+            </div>
+          </div>
+
+          <!-- Presets for FDV -->
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button class="fdv-preset text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition" data-fdv="75000000">1x ($75M Presale)</button>
+            <button class="fdv-preset text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition" data-fdv="150000000">2x ($150M)</button>
+            <button class="fdv-preset text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition" data-fdv="300000000">4x ($300M)</button>
+            <button class="fdv-preset text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition" data-fdv="500000000">6.7x ($500M)</button>
+            <button class="fdv-preset text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition" data-fdv="750000000">10x ($750M)</button>
+            <button class="fdv-preset text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition" data-fdv="1000000000">13.3x ($1.0B)</button>
+          </div>
+        </div>
+
+        <!-- Projected Value Results Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-purple-500">
+            <span class="text-xs text-slate-400 block mb-1">Total Position Value</span>
+            <div id="totalValueDisplay" class="text-2xl font-extrabold font-mono text-white">$1,000.00</div>
+            <span id="roiPercentageDisplay" class="text-xs text-slate-400 font-mono mt-1 block">+0.00% Net ROI</span>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-cyan-400">
+            <span class="text-xs text-slate-400 block mb-1">Liquid at TGE (50%)</span>
+            <div id="tgeValueDisplay" class="text-2xl font-extrabold font-mono text-cyan-300">$500.00</div>
+            <span class="text-xs text-slate-400 font-mono mt-1 block">Immediate Claim</span>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-emerald-400">
+            <span class="text-xs text-slate-400 block mb-1">Estimated Net Profit</span>
+            <div id="netProfitDisplay" class="text-2xl font-extrabold font-mono text-emerald-400">+$0.00</div>
+            <span id="profitSubtitle" class="text-xs text-slate-400 font-mono mt-1 block">At Target FDV</span>
+          </div>
+        </div>
+
+        <div id="principalRecoverNotice" class="hidden glass-card rounded-xl p-4 border border-cyan-500/30 bg-cyan-950/20 text-xs">
+          <div class="flex items-center gap-2 text-cyan-300 font-medium">
+            <i data-lucide="check-circle" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+            <span id="principalRecoverText">Initial principal recovered at TGE!</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Full-Width Section: Vesting Schedule Timeline Table -->
+    <div class="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i data-lucide="calendar" class="w-5 h-5 text-purple-400"></i>
+            Unlock Schedule & Valuation Timeline
+          </h3>
+          <p class="text-xs text-slate-400">50% upfront distribution at TGE, followed by 12.5% linear monthly unlocks over 4 months</p>
+        </div>
+        <div class="text-xs font-mono bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-300">
+          Target Price: <span id="currentScenarioPrice" class="text-cyan-400 font-bold">$0.075</span>
+        </div>
+      </div>
+
+      <!-- Visual Progress Track -->
+      <div class="space-y-2">
+        <div class="flex justify-between text-xs text-slate-400 font-mono">
+          <span>TGE (50%)</span>
+          <span>Month 1 (62.5%)</span>
+          <span>Month 2 (75%)</span>
+          <span>Month 3 (87.5%)</span>
+          <span>Month 4 (100%)</span>
+        </div>
+        <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden flex border border-slate-800">
+          <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full w-[50%] transition-all" title="50% at TGE"></div>
+          <div class="bg-indigo-400/80 h-full w-[12.5%] border-l border-slate-950 transition-all" title="Month 1"></div>
+          <div class="bg-cyan-500/80 h-full w-[12.5%] border-l border-slate-950 transition-all" title="Month 2"></div>
+          <div class="bg-teal-400/80 h-full w-[12.5%] border-l border-slate-950 transition-all" title="Month 3"></div>
+          <div class="bg-emerald-400 h-full w-[12.5%] border-l border-slate-950 transition-all" title="Month 4"></div>
+        </div>
+      </div>
+
+      <!-- Schedule Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="text-xs text-slate-400 border-b border-slate-800/80">
+              <th class="py-3 px-3 font-semibold">Milestone</th>
+              <th class="py-3 px-3 font-semibold">Unlock %</th>
+              <th class="py-3 px-3 font-semibold">Tokens Unlocked (Period)</th>
+              <th class="py-3 px-3 font-semibold">Cumulative Tokens</th>
+              <th class="py-3 px-3 font-semibold text-right">Value at Target Price</th>
+            </tr>
+          </thead>
+          <tbody id="timelineTableBody" class="divide-y divide-slate-800/50 font-mono text-xs sm:text-sm">
+            <!-- Dynamic Injection -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="glass-card rounded-2xl p-6 text-xs text-slate-400 space-y-3">
+      <h4 class="text-slate-200 font-semibold flex items-center gap-2 text-sm">
+        <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>
+        Important Disclaimer & Methodology Note
+      </h4>
+      <p>
+        The calculations displayed in this tool are mathematical projections based on official Jumper Legion token sale metrics ($75M FDV at a $0.075 entry price and 1,000,000,000 Total Supply). This tool does not constitute financial advice. Actual token price upon TGE and throughout the 4-month linear vesting schedule will be subject to market volatility and liquidity conditions.
+      </p>
+    </div>
+
+  </main>
+
+  <script>
+    // Constants
+    const TOTAL_SUPPLY = 1000000000; // 1 Billion tokens
+    const PRESALE_FDV = 75000000;    // $75 Million
+    const PRESALE_PRICE = PRESALE_FDV / TOTAL_SUPPLY; // $0.075
+
+    // DOM Elements
+    const investInput = document.getElementById('investInput');
+    const fdvInput = document.getElementById('fdvInput');
+    const tokenPriceInput = document.getElementById('tokenPriceInput');
+    const fdvSlider = document.getElementById('fdvSlider');
+    const presetButtons = document.querySelectorAll('.preset-btn');
+    const fdvPresetButtons = document.querySelectorAll('.fdv-preset');
+
+    // Outputs
+    const totalTokensDisplay = document.getElementById('totalTokensDisplay');
+    const tgeTokensDisplay = document.getElementById('tgeTokensDisplay');
+    const vestedTokensDisplay = document.getElementById('vestedTokensDisplay');
+    const monthlyTokensDisplay = document.getElementById('monthlyTokensDisplay');
+    
+    const multiplierBadge = document.getElementById('multiplierBadge');
+    const totalValueDisplay = document.getElementById('totalValueDisplay');
+    const tgeValueDisplay = document.getElementById('tgeValueDisplay');
+    const netProfitDisplay = document.getElementById('netProfitDisplay');
+    const roiPercentageDisplay = document.getElementById('roiPercentageDisplay');
+    const profitSubtitle = document.getElementById('profitSubtitle');
+    const currentScenarioPrice = document.getElementById('currentScenarioPrice');
+    const timelineTableBody = document.getElementById('timelineTableBody');
+    const copySummaryBtn = document.getElementById('copySummaryBtn');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    const principalRecoverNotice = document.getElementById('principalRecoverNotice');
+    const principalRecoverText = document.getElementById('principalRecoverText');
+
+    // Number Formatters
+    const formatCurrency = (val, minFrac = 2, maxFrac = 2) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: minFrac,
+        maximumFractionDigits: maxFrac
+      }).format(val);
+    };
+
+    const formatNumber = (val, maxDecimals = 2) => {
+      return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: maxDecimals
+      }).format(val);
+    };
+
+    // Show Notification Toast
+    function showToast(msg) {
+      toastMessage.textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3000);
+    }
+
+    // Calculation Engine
+    function calculate() {
+      const investment = Math.max(0, parseFloat(investInput.value) || 0);
+      const targetFdv = Math.max(1000, parseFloat(fdvInput.value) || PRESALE_FDV);
+      const targetPrice = targetFdv / TOTAL_SUPPLY;
+
+      // Token Amounts
+      const totalTokens = investment / PRESALE_PRICE;
+      const tgeTokens = totalTokens * 0.50;
+      const remainingVestingTokens = totalTokens * 0.50;
+      const monthlyTokens = totalTokens * 0.125;
+
+      // Values
+      const currentMultiplier = targetPrice / PRESALE_PRICE;
+      const totalPositionValue = totalTokens * targetPrice;
+      const tgeValue = tgeTokens * targetPrice;
+      const netProfit = totalPositionValue - investment;
+      const roiPercent = investment > 0 ? ((totalPositionValue - investment) / investment) * 100 : 0;
+
+      // Update UI: Inputs & Badges
+      currentScenarioPrice.textContent = `$${targetPrice < 0.01 ? targetPrice.toFixed(4) : targetPrice.toFixed(3)}`;
+
+      // Multiplier styling
+      const multiplierText = `${currentMultiplier.toFixed(2)}x (${roiPercent >= 0 ? '+' : ''}${roiPercent.toFixed(1)}% ROI)`;
+      multiplierBadge.textContent = multiplierText;
+
+      if (currentMultiplier >= 1) {
+        multiplierBadge.className = 'inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-400 font-mono text-sm font-bold';
+        netProfitDisplay.className = 'text-2xl font-extrabold font-mono text-emerald-400';
+        netProfitDisplay.textContent = `+${formatCurrency(netProfit)}`;
+      } else {
+        multiplierBadge.className = 'inline-flex items-center gap-1.5 self-start sm:self-auto px-3 py-1 rounded-full bg-rose-950/80 border border-rose-500/50 text-rose-400 font-mono text-sm font-bold';
+        netProfitDisplay.className = 'text-2xl font-extrabold font-mono text-rose-400';
+        netProfitDisplay.textContent = `-${formatCurrency(Math.abs(netProfit))}`;
+      }
+
+      // Display tokens
+      totalTokensDisplay.textContent = `${formatNumber(totalTokens, 2)} JUMP`;
+      tgeTokensDisplay.textContent = `${formatNumber(tgeTokens, 2)} JUMP`;
+      vestedTokensDisplay.textContent = `${formatNumber(remainingVestingTokens, 2)} JUMP`;
+      monthlyTokensDisplay.textContent = `${formatNumber(monthlyTokens, 2)} JUMP / mo (12.5%)`;
+
+      // Value Cards
+      totalValueDisplay.textContent = formatCurrency(totalPositionValue);
+      tgeValueDisplay.textContent = formatCurrency(tgeValue);
+      roiPercentageDisplay.textContent = `${roiPercent >= 0 ? '+' : ''}${roiPercent.toFixed(2)}% Net ROI`;
+      profitSubtitle.textContent = netProfit >= 0 ? 'Profit over initial cost' : 'Drawdown at this FDV';
+
+      if (principalRecoverNotice) {
+        if (tgeValue >= investment && investment > 0) {
+          principalRecoverNotice.classList.remove('hidden');
+          if (principalRecoverText) {
+            principalRecoverText.textContent = `🎯 100%+ of your initial investment ($${formatNumber(investment, 2)}) is unlocked & liquid right at TGE ($${formatNumber(tgeValue, 2)})!`;
+          }
+        } else {
+          principalRecoverNotice.classList.add('hidden');
+        }
+      }
+
+      // Vesting Milestones Table
+      const milestones = [
+        { name: 'TGE (Day 1)', percent: '50.0%', periodTokens: tgeTokens, cumTokens: tgeTokens, note: 'TGE Initial Unlock' },
+        { name: 'Month 1 Unlock', percent: '12.5%', periodTokens: monthlyTokens, cumTokens: tgeTokens + monthlyTokens, note: '30 Days post-TGE' },
+        { name: 'Month 2 Unlock', percent: '12.5%', periodTokens: monthlyTokens, cumTokens: tgeTokens + monthlyTokens * 2, note: '60 Days post-TGE' },
+        { name: 'Month 3 Unlock', percent: '12.5%', periodTokens: monthlyTokens, cumTokens: tgeTokens + monthlyTokens * 3, note: '90 Days post-TGE' },
+        { name: 'Month 4 (Final)', percent: '12.5%', periodTokens: monthlyTokens, cumTokens: totalTokens, note: '120 Days post-TGE (100% Unlocked)' }
+      ];
+
+      timelineTableBody.innerHTML = milestones.map((m, idx) => `
+        <tr class="hover:bg-slate-800/30 transition">
+          <td class="py-3 px-3 font-semibold text-slate-200">
+            <span class="inline-block w-2 h-2 rounded-full mr-2 ${idx === 0 ? 'bg-cyan-400' : 'bg-purple-400'}"></span>
+            ${m.name}
+            <span class="block sm:inline text-[11px] text-slate-500 font-normal sm:ml-2">(${m.note})</span>
+          </td>
+          <td class="py-3 px-3 text-slate-300">${m.percent}</td>
+          <td class="py-3 px-3 text-purple-300 font-mono">+${formatNumber(m.periodTokens, 2)}</td>
+          <td class="py-3 px-3 text-slate-100 font-mono font-medium">${formatNumber(m.cumTokens, 2)} JUMP</td>
+          <td class="py-3 px-3 text-right font-bold text-emerald-400 font-mono">${formatCurrency(m.cumTokens * targetPrice)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Sync FDV to Token Price
+    fdvInput.addEventListener('input', () => {
+      const fdv = parseFloat(fdvInput.value) || 0;
+      tokenPriceInput.value = (fdv / TOTAL_SUPPLY).toFixed(4);
+      fdvSlider.value = Math.min(Math.max(fdv, fdvSlider.min), fdvSlider.max);
+      calculate();
+    });
+
+    // Sync Token Price to FDV
+    tokenPriceInput.addEventListener('input', () => {
+      const price = parseFloat(tokenPriceInput.value) || 0;
+      const fdv = price * TOTAL_SUPPLY;
+      fdvInput.value = Math.round(fdv);
+      fdvSlider.value = Math.min(Math.max(fdv, fdvSlider.min), fdvSlider.max);
+      calculate();
+    });
+
+    // Slider Event
+    fdvSlider.addEventListener('input', () => {
+      const fdv = parseFloat(fdvSlider.value);
+      fdvInput.value = fdv;
+      tokenPriceInput.value = (fdv / TOTAL_SUPPLY).toFixed(4);
+      calculate();
+    });
+
+    // Investment Input Event
+    investInput.addEventListener('input', calculate);
+
+    // Investment Quick Presets
+    presetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        presetButtons.forEach(b => {
+          b.classList.remove('bg-purple-950/80', 'border-purple-500/60', 'text-purple-200', 'font-bold');
+          b.classList.add('bg-slate-800/70', 'border-slate-700/60', 'text-slate-300');
+        });
+        btn.classList.add('bg-purple-950/80', 'border-purple-500/60', 'text-purple-200', 'font-bold');
+        btn.classList.remove('bg-slate-800/70', 'text-slate-300');
+
+        investInput.value = btn.dataset.amount;
+        calculate();
+      });
+    });
+
+    // FDV Quick Presets
+    fdvPresetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetFdv = parseFloat(btn.dataset.fdv);
+        fdvInput.value = targetFdv;
+        tokenPriceInput.value = (targetFdv / TOTAL_SUPPLY).toFixed(4);
+        fdvSlider.value = Math.min(Math.max(targetFdv, fdvSlider.min), fdvSlider.max);
+        calculate();
+      });
+    });
+
+    // Copy Summary Helper
+    copySummaryBtn.addEventListener('click', () => {
+      const invest = investInput.value;
+      const fdv = (parseFloat(fdvInput.value) / 1000000).toFixed(1);
+      const price = tokenPriceInput.value;
+      const totalTokens = totalTokensDisplay.textContent;
+      const totalVal = totalValueDisplay.textContent;
+      const mult = multiplierBadge.textContent.trim();
+
+      const summary = `⚡ Jumper ($JUMP) Legion Presale Projection
+• Investment: $${invest} USDC
+• Total Tokens: ${totalTokens}
+• Target FDV: $${fdv}M (Price: $${price})
+• ROI Multiplier: ${mult}
+• Projected Position Value: ${totalVal}
+• Unlock Structure: 50% TGE, 50% linear 4-month vest`;
+
+      // Copy using robust legacy execCommand for iframe compatibility
+      const tempArea = document.createElement('textarea');
+      tempArea.value = summary;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Summary copied to clipboard!');
+      } catch (err) {
+        showToast('Failed to copy text.');
+      }
+      document.body.removeChild(tempArea);
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      calculate();
+    });
+  </script>
+</body>
+</html>
